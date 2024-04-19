@@ -242,7 +242,7 @@ namespace MWGui
         /// @param name The ESM::Cell::mName
         void addVisitedLocation(const std::string& name, int x, int y);
 
-        // reveals this cell's map on the global map
+        // reveals this cell's map on the global map 
         void cellExplored(int x, int y);
 
         void setGlobalMapPlayerPosition(float worldX, float worldY);
@@ -269,6 +269,7 @@ namespace MWGui
     private:
         void onDragStart(MyGUI::Widget* _sender, int _left, int _top, MyGUI::MouseButton _id);
         void onMouseDrag(MyGUI::Widget* _sender, int _left, int _top, MyGUI::MouseButton _id);
+        void onMouseClick(MyGUI::Widget* _sender, int _left, int _top, MyGUI::MouseButton _id);
         void onWorldButtonClicked(MyGUI::Widget* _sender);
         void onMapDoubleClicked(MyGUI::Widget* sender);
         void onMapZoomed(MyGUI::Widget* sender, int rel);

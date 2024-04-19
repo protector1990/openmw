@@ -1053,6 +1053,7 @@ namespace MWGui
         setGlobalMapMarkerTooltip(markerWidget, x, y);
 
         markerWidget->setUserString("ToolTipLayout", "TextToolTipOneLine");
+        markerWidget->setUserString("CellName", name);
 
         markerWidget->setNeedMouseFocus(true);
         markerWidget->setColour(
@@ -1062,6 +1063,7 @@ namespace MWGui
         if (Settings::map().mAllowZooming)
             markerWidget->eventMouseWheel += MyGUI::newDelegate(this, &MapWindow::onMapZoomed);
         markerWidget->eventMouseButtonPressed += MyGUI::newDelegate(this, &MapWindow::onDragStart);
+        markerWidget->eventMouseButtonReleased += MyGUI::newDelegate(this, &MapWindow::onMouseClick);
 
         return markerWidget;
     }
@@ -1192,6 +1194,29 @@ namespace MWGui
             mGlobalMap->setViewOffset(mGlobalMap->getViewOffset() + diff);
 
         mLastDragPos = MyGUI::IntPoint(_left, _top);
+    }
+
+    ESM::Position toCellCenter(int gridX, int gridY)
+    {
+        ESM::Position esmPos;
+        static_assert(sizeof(esmPos) == sizeof(osg::Vec3f) * 2);
+        float x = gridX <= 0 ? (gridX + 0.5f) * Constants::CellSizeInUnits : (gridX - 0.5f) * Constants::CellSizeInUnits;
+        float y = gridY <= 0 ? (gridY + 0.5f) * Constants::CellSizeInUnits : (gridY - 0.5f) * Constants::CellSizeInUnits;
+        std::memcpy(esmPos.pos, new osg::Vec3f(x, y, 0), sizeof(osg::Vec3f));
+        std::memcpy(esmPos.rot, new osg::Vec3f(0, 0, 0), sizeof(osg::Vec3f));
+        return esmPos;
+    }
+
+    void MapWindow::onMouseClick(MyGUI::Widget* _sender, int _left, int _top, MyGUI::MouseButton _id) 
+    {
+        if (MyGUI::MouseButton::Left == _id)
+        {
+            auto cellName = _sender->getUserString("CellName");
+            auto cell = MWBase::Environment::get().getWorldModel()->findCell(cellName, true);
+            auto position = toCellCenter(cell->getCell()->getGridX(), cell->getCell()->getGridY());
+            MWBase::Environment::get().getWorld()->changeToCell(cell->getCell()->getId(), position, true);
+
+        }
     }
 
     void MapWindow::onWorldButtonClicked(MyGUI::Widget* _sender)
