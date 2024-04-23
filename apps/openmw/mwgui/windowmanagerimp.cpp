@@ -982,7 +982,7 @@ namespace MWGui
         if (cellCommon->isExterior())
         {
             if (!cellCommon->getNameId().empty())
-                mMap->addVisitedLocation(name, cellCommon->getGridX(), cellCommon->getGridY());
+                mMap->addVisitedLocation(cellCommon->getId(), name, cellCommon->getGridX(), cellCommon->getGridY());
 
             mMap->cellExplored(cellCommon->getGridX(), cellCommon->getGridY());
         }
@@ -1634,9 +1634,9 @@ namespace MWGui
         mWaitDialog->wakeUp();
     }
 
-    void WindowManager::addVisitedLocation(const std::string& name, int x, int y)
+    void WindowManager::addVisitedLocation(const ESM::RefId cellId, const std::string& name, int x, int y)
     {
-        mMap->addVisitedLocation(name, x, y);
+        mMap->addVisitedLocation(cellId, name, x, y);
     }
 
     const Translation::Storage& WindowManager::getTranslationDataStorage() const

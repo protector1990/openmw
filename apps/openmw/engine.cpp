@@ -944,15 +944,15 @@ void OMW::Engine::go()
     prepareEngine();
 
 #ifdef _WIN32
-    const auto* stats_file = _wgetenv(L"OPENMW_OSG_STATS_FILE");
+    auto* stats_file = _wgetenv(L"OPENMW_OSG_STATS_FILE") + 1;
+    stats_file[wcslen(stats_file) - 1] = '\0';
 #else
     const auto* stats_file = std::getenv("OPENMW_OSG_STATS_FILE");
 #endif
-
+    
     std::filesystem::path path;
     if (stats_file != nullptr)
         path = stats_file;
-
     std::ofstream stats;
     if (!path.empty())
     {

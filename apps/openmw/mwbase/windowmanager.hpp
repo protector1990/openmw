@@ -236,7 +236,7 @@ namespace MWBase
         virtual void allowMouse() = 0;
         virtual void notifyInputActionBound() = 0;
 
-        virtual void addVisitedLocation(const std::string& name, int x, int y) = 0;
+        virtual void addVisitedLocation(const ESM::RefId cellId, const std::string& name, int x, int y) = 0;
 
         /// Hides dialog and schedules dialog to be deleted.
         virtual void removeDialog(std::unique_ptr<MWGui::Layout>&& dialog) = 0;

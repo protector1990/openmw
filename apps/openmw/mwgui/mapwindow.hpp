@@ -240,7 +240,7 @@ namespace MWGui
 
         /// adds the marker to the global map
         /// @param name The ESM::Cell::mName
-        void addVisitedLocation(const std::string& name, int x, int y);
+        void addVisitedLocation(const ESM::RefId cellId, const std::string& name, int x, int y);
 
         // reveals this cell's map on the global map 
         void cellExplored(int x, int y);
@@ -269,7 +269,7 @@ namespace MWGui
     private:
         void onDragStart(MyGUI::Widget* _sender, int _left, int _top, MyGUI::MouseButton _id);
         void onMouseDrag(MyGUI::Widget* _sender, int _left, int _top, MyGUI::MouseButton _id);
-        void onMouseClick(MyGUI::Widget* _sender, int _left, int _top, MyGUI::MouseButton _id);
+        void onMarkerClick(MyGUI::Widget* _sender, int _left, int _top, MyGUI::MouseButton _id);
         void onWorldButtonClicked(MyGUI::Widget* _sender);
         void onMapDoubleClicked(MyGUI::Widget* sender);
         void onMapZoomed(MyGUI::Widget* sender, int rel);
@@ -287,7 +287,7 @@ namespace MWGui
         void resizeGlobalMap();
         void worldPosToGlobalMapImageSpace(float x, float z, float& imageX, float& imageY) const;
         MyGUI::IntCoord createMarkerCoords(float x, float y, float agregatedWeight) const;
-        MyGUI::Widget* createMarker(const std::string& name, float x, float y, float agregatedWeight);
+        MyGUI::Widget* createMarker(const ESM::RefId cellId, const std::string& name, float x, float y, float agregatedWeight);
 
         MyGUI::ScrollView* mGlobalMap;
         std::unique_ptr<MyGUI::ITexture> mGlobalMapTexture;

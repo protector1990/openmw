@@ -254,7 +254,7 @@ namespace MWGui
         void allowMouse() override;
         void notifyInputActionBound() override;
 
-        void addVisitedLocation(const std::string& name, int x, int y) override;
+        void addVisitedLocation(const ESM::RefId cellId, const std::string& name, int x, int y) override;
 
         /// Hides dialog and schedules dialog to be deleted.
         void removeDialog(std::unique_ptr<Layout>&& dialog) override;

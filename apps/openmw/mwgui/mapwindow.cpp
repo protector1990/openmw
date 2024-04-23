@@ -1044,7 +1044,14 @@ namespace MWGui
             markerSize, markerSize);
     }
 
-    MyGUI::Widget* MapWindow::createMarker(const std::string& name, float x, float y, float agregatedWeight)
+    struct FastTravelDestinationInfo
+    {
+        ESM::RefId cellId;
+        float x;
+        float y;
+    };
+
+    MyGUI::Widget* MapWindow::createMarker(const ESM::RefId cellId, const std::string& name, float x, float y, float agregatedWeight)
     {
         MyGUI::Widget* markerWidget = mGlobalMap->createWidget<MyGUI::Widget>(
             "MarkerButton", createMarkerCoords(x, y, agregatedWeight), MyGUI::Align::Default);
@@ -1053,7 +1060,9 @@ namespace MWGui
         setGlobalMapMarkerTooltip(markerWidget, x, y);
 
         markerWidget->setUserString("ToolTipLayout", "TextToolTipOneLine");
-        markerWidget->setUserString("CellName", name);
+        auto ft = new FastTravelDestinationInfo{ cellId, x, y };
+        markerWidget->setUserData(FastTravelDestinationInfo{cellId, x, y}); // Investigate more about OpenMW memory management, and
+                                                                // reimplement instantiation in accordance to that
 
         markerWidget->setNeedMouseFocus(true);
         markerWidget->setColour(
@@ -1063,19 +1072,19 @@ namespace MWGui
         if (Settings::map().mAllowZooming)
             markerWidget->eventMouseWheel += MyGUI::newDelegate(this, &MapWindow::onMapZoomed);
         markerWidget->eventMouseButtonPressed += MyGUI::newDelegate(this, &MapWindow::onDragStart);
-        markerWidget->eventMouseButtonReleased += MyGUI::newDelegate(this, &MapWindow::onMouseClick);
+        markerWidget->eventMouseButtonReleased += MyGUI::newDelegate(this, &MapWindow::onMarkerClick);
 
         return markerWidget;
     }
 
-    void MapWindow::addVisitedLocation(const std::string& name, int x, int y)
+    void MapWindow::addVisitedLocation(const ESM::RefId cellId, const std::string& name, int x, int y)
     {
         CellId cell;
         cell.first = x;
         cell.second = y;
         if (mMarkers.insert(cell).second)
         {
-            MapMarkerType mapMarkerWidget = { osg::Vec2f(x, y), createMarker(name, x, y, 0) };
+            MapMarkerType mapMarkerWidget = { osg::Vec2f(x, y), createMarker(cellId, name, x, y, 0) };
             mGlobalMapMarkers.emplace(mapMarkerWidget, std::vector<MapMarkerType>());
 
             std::string name_ = name.substr(0, name.find(','));
@@ -1084,7 +1093,7 @@ namespace MWGui
             {
                 entry = { osg::Vec2f(x, y), entry.widget }; // update the coords
 
-                entry.widget = createMarker(name_, entry.position.x(), entry.position.y(), 1);
+                entry.widget = createMarker(cellId, name_, entry.position.x(), entry.position.y(), 1);
                 mGlobalMapMarkers.emplace(entry, std::vector<MapMarkerType>{ entry });
             }
             else
@@ -1196,7 +1205,7 @@ namespace MWGui
         mLastDragPos = MyGUI::IntPoint(_left, _top);
     }
 
-    ESM::Position toCellCenter(int gridX, int gridY)
+    ESM::Position toCellCenter(float gridX, float gridY)
     {
         ESM::Position esmPos;
         static_assert(sizeof(esmPos) == sizeof(osg::Vec3f) * 2);
@@ -1207,15 +1216,13 @@ namespace MWGui
         return esmPos;
     }
 
-    void MapWindow::onMouseClick(MyGUI::Widget* _sender, int _left, int _top, MyGUI::MouseButton _id) 
+    void MapWindow::onMarkerClick(MyGUI::Widget* _sender, int _left, int _top, MyGUI::MouseButton _id) 
     {
         if (MyGUI::MouseButton::Left == _id)
         {
-            auto cellName = _sender->getUserString("CellName");
-            auto cell = MWBase::Environment::get().getWorldModel()->findCell(cellName, true);
-            auto position = toCellCenter(cell->getCell()->getGridX(), cell->getCell()->getGridY());
-            MWBase::Environment::get().getWorld()->changeToCell(cell->getCell()->getId(), position, true);
-
+            auto fastTravelInfo = _sender->getUserData<FastTravelDestinationInfo>();
+            auto position = toCellCenter(fastTravelInfo->x, fastTravelInfo->y);
+            MWBase::Environment::get().getWorld()->changeToCell(fastTravelInfo->cellId, position, true);
         }
     }
 
@@ -1353,7 +1360,7 @@ namespace MWGui
                 const ESM::Cell* cell
                     = MWBase::Environment::get().getESMStore()->get<ESM::Cell>().search(cellId.first, cellId.second);
                 if (cell && !cell->mName.empty())
-                    addVisitedLocation(cell->mName, cellId.first, cellId.second);
+                    addVisitedLocation(cell->mId, cell->mName, cellId.first, cellId.second);
             }
         }
     }
